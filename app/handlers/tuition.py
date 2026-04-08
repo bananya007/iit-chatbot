@@ -21,8 +21,15 @@ from app.domains.tuition.pipeline import (
 )
 from app.domains.tuition.search import load_filter_values, structured_search
 
-# Filter values loaded once at import time
-_fv = load_filter_values()
+# Lazy-loaded filter values — deferred until first request so startup doesn't
+# require a live ES connection (avoids crash if index isn't ready yet).
+_fv = None
+
+def _get_fv() -> dict:
+    global _fv
+    if _fv is None:
+        _fv = load_filter_values()
+    return _fv
 
 
 _MULTI_DOMAIN_MAX_HITS = 8  # if unfiltered results exceed this, tuition steps aside
@@ -69,7 +76,7 @@ def retrieve(query: str, history: list, state: dict, multi_domain: bool = False)
         state["accumulated_known"]  = {}
         state["pending_suggestion"] = {}
 
-    new_known                  = extract_known(query, _fv)
+    new_known                  = extract_known(query, _get_fv())
     state["accumulated_known"] = {**state["accumulated_known"], **new_known}
     if confirmed_suggestion:
         state["accumulated_known"].update(confirmed_suggestion)
@@ -102,7 +109,7 @@ def retrieve(query: str, history: list, state: dict, multi_domain: bool = False)
         return hits, debug, None, state
 
     if state["clarify_count"] < MAX_CLARIFY:
-        clarify_q, suggestion = _needs_clarification(known, hits, _fv, history)
+        clarify_q, suggestion = _needs_clarification(known, hits, _get_fv(), history)
         if clarify_q:
             state["pending_suggestion"] = suggestion
             state["clarify_count"]     += 1
@@ -160,7 +167,7 @@ def handle(query: str, history: list, state: dict, stream: bool = False) -> tupl
         state["accumulated_known"] = {}
         state["pending_suggestion"] = {}
 
-    new_known                  = extract_known(query, _fv)
+    new_known                  = extract_known(query, _get_fv())
     state["accumulated_known"] = {**state["accumulated_known"], **new_known}
     if confirmed_suggestion:
         state["accumulated_known"].update(confirmed_suggestion)
@@ -186,7 +193,7 @@ def handle(query: str, history: list, state: dict, stream: bool = False) -> tupl
 
     # ── Step 3: Clarification guard ───────────────────────────────────────────
     if state["clarify_count"] < MAX_CLARIFY:
-        clarify_q, suggestion = _needs_clarification(known, hits, _fv, history)
+        clarify_q, suggestion = _needs_clarification(known, hits, _get_fv(), history)
         if clarify_q:
             state["pending_suggestion"] = suggestion
             state["clarify_count"]     += 1
