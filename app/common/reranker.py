@@ -1,32 +1,25 @@
 """
 common/reranker.py
 Cross-encoder reranker shared across calendar and documents pipelines.
-Streamlit-aware: uses @st.cache_resource when running under Streamlit.
+Fully lazy-loaded — torch and model weights are not imported at startup,
+so the FastAPI server can start on Render's 512 MB free tier.
 """
 
 import logging
 
-from sentence_transformers import CrossEncoder
-
 logger = logging.getLogger(__name__)
-
-try:
-    import streamlit as st
-except ImportError:
-    st = None
 
 RERANKER_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
-if st is not None:
-    @st.cache_resource
-    def _load():
-        return CrossEncoder(RERANKER_NAME)
-else:
-    def _load():
-        return CrossEncoder(RERANKER_NAME)
+_reranker = None
 
 
-reranker = _load()
+def _get_reranker():
+    global _reranker
+    if _reranker is None:
+        from sentence_transformers import CrossEncoder
+        _reranker = CrossEncoder(RERANKER_NAME)
+    return _reranker
 
 
 def rerank_chunks(query: str, hits: list, top_k: int = 3) -> list:
@@ -51,7 +44,7 @@ def rerank_chunks(query: str, hits: list, top_k: int = 3) -> list:
     if len(valid_hits) <= top_k:
         return valid_hits
 
-    scores = reranker.predict(pairs)
+    scores = _get_reranker().predict(pairs)
     for hit, score in zip(valid_hits, scores):
         hit["_rerank_score"] = float(score)
 
