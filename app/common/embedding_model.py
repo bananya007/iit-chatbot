@@ -1,31 +1,26 @@
 """
 common/embedding_model.py
-e5-large-v2 sentence transformer, lazy-loaded on first use.
+e5-large-v2 sentence transformer, fully lazy-loaded on first use.
 
-Lazy loading prevents the 1.3 GB model from being downloaded/loaded at
-import time — which would OOM the 512 MB Render free tier on startup.
-The model loads on the first call to get_model() and is cached thereafter.
+Both the torch import AND the model weights are deferred until get_model()
+is first called. This keeps startup memory usage near zero so the FastAPI
+server can start on Render's 512 MB free tier.
 """
-
-from sentence_transformers import SentenceTransformer
-
-MODEL_LARGE_NAME = "intfloat/e5-large-v2"
 
 _model = None
 
 
-def get_model() -> SentenceTransformer:
-    """Return the cached model, loading it on the first call."""
+def get_model():
+    """Return the cached model, importing torch and loading weights on first call."""
     global _model
     if _model is None:
-        _model = SentenceTransformer(MODEL_LARGE_NAME)
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer("intfloat/e5-large-v2")
     return _model
 
 
-# Backwards-compatible alias — callers that do `model_large.encode(...)` still work,
-# but this now triggers a lazy load on first attribute access rather than at import.
 class _LazyModel:
-    """Proxy that loads the model on first method call."""
+    """Proxy that defers torch import + model load until first method call."""
     def encode(self, *args, **kwargs):
         return get_model().encode(*args, **kwargs)
 
