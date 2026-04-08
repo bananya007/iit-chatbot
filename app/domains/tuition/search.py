@@ -8,7 +8,7 @@ amount_value, making filter queries exact and zero-hallucination.
 
 from app.common.es_client import es
 
-INDEX  = "tuition_fees_v2"
+INDEX  = "tuition_fees"
 TOP_K  = 5
 
 SOURCE_FIELDS = [
