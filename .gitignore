@@ -1,0 +1,39 @@
+# Environment
+.env
+.env.local
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Data (except specific ingest files)
+data/raw/*
+data/processed/*
+data/curated/*
+data/extracted/*
+!data/raw/Contacts data.csv
+!data/processed/calendar_chunks.json
+!data/curated/tuition_fees.bulk.ndjson
+!data/processed/Unstructured data/
+!data/processed/Unstructured data/Unstructured chunks k.json
+
+# Test results and Excel files
+app/tests/results/
+app/tests/*.xlsx
+app/tests/*.json
+
+# Mac
+.DS_Store
+
+# Old code
+old_scripts/
+v2/
+calendar/
+common/
+scripts/es_client.py
+scripts/gs_client.py

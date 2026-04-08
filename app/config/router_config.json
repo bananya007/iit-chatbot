@@ -1,0 +1,12 @@
+{
+  "_comment": "Routing thresholds — tune these based on observed query behavior",
+
+  "confidence_threshold": 0.50,
+  "_confidence_threshold_note": "Minimum best-domain score to route at all. Below this the bot says it doesn't understand the question. Raise to reduce false routing; lower to be more permissive.",
+
+  "top_k": 5,
+  "_top_k_note": "Number of top prototype matches considered per routing decision. 5 is a good balance — higher values smooth noisy queries but slow down routing slightly.",
+
+  "multi_domain_ratio": 0.92,
+  "_multi_domain_ratio_note": "A second domain is included only if its score >= best_score * this ratio. 0.92 means the second domain must score at least 92% of the best — only triggered for genuinely dual-topic queries. Lower = more multi-domain routing; raise above 1.0 to disable multi-domain entirely."
+}
