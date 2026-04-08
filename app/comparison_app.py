@@ -86,7 +86,7 @@ def call_chatbot_a(query: str) -> dict:
                 "tuition_state":  st.session_state.tuition_state_a,
                 "calendar_state": st.session_state.calendar_state_a,
             },
-            timeout=60,
+            timeout=120,
         )
         resp.raise_for_status()
         return resp.json()
@@ -107,7 +107,7 @@ def call_chatbot_b(query: str) -> dict:
         resp = requests.post(
             f"{url_b}/ask",
             json={"prompt": query},
-            timeout=60,
+            timeout=120,
         )
         resp.raise_for_status()
         data = resp.json()
