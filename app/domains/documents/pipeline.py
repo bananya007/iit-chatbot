@@ -15,7 +15,6 @@ import re
 from typing import Generator, Union
 
 from app.common.llm_client import call_gpt, stream_gpt
-from app.common.embedding_model import model_large
 from app.domains.documents.search import search
 
 MAX_HISTORY = 8

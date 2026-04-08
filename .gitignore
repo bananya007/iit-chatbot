@@ -35,5 +35,6 @@ old_scripts/
 v2/
 calendar/
 common/
+!app/common/
 scripts/es_client.py
 scripts/gs_client.py
